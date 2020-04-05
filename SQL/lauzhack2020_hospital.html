@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+<table border="1" style="border-collapse:collapse">
+<tr><th>hospital_id</th><th>StName</th><th>StNb</th><th>NPA</th><th>Canton</th><th>Town</th><th>Capacity</th><th>FreeBeds</th></tr>
+<tr><td>CHUV</td><td>Rue de Bugnon</td><td>21</td><td>1011</td><td>VD</td><td>Lausanne</td><td>1554</td><td>233</td></tr>
+<tr><td>eHnv</td><td>Route de l&#39;Hôpital</td><td>3</td><td>1436</td><td>VD</td><td>Chamblon</td><td>330</td><td>0</td></tr>
+<tr><td>Fédération des Hôpitaux Vaudoix</td><td>Bois de Cery</td><td>0</td><td>1008</td><td>VD</td><td>Prilly</td><td>0</td><td>0</td></tr></table>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+<table border="1" style="border-collapse:collapse">
+<tr><th>Patient_id</th><th>FirstName</th><th>LastName</th><th>Age</th><th>RiskFactor</th><th>HealthState</th><th>fk_hospital_id</th><th>fk_UnitType_id</th></tr>
+<tr><td>0000</td><td>Jean</td><td>Michel</td><td>45</td><td>75</td><td>Grave</td><td>CHUV</td><td>Intensive Care</td></tr></table>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+<table border="1" style="border-collapse:collapse">
+<tr><th>UnitType_id</th><th>Capacity</th><th>UsedBedNb</th><th>FreeBedNb</th><th>CovidBedNb</th><th>OtherBedNb</th><th>fk_hospital_id</th></tr>
+<tr><td>Intensive Care</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>CHUV</td></tr></table>
+</body>
+</html>
