@@ -11,15 +11,15 @@ public class Main {
 
     public static void main(String[] args) {
         ArrayList<Hospital> hospitals = new ArrayList<>();
-        SqlLoader loader = new SqlLoader();
+        //SqlLoader loader = new SqlLoader();
 
-       ArrayList<ArrayList<Object>> tableHospital = loader.getTblAsList("hospital");
+    /*   ArrayList<ArrayList<Object>> tableHospital = loader.getTblAsList("hospital");
         for (ArrayList<Object> list : tableHospital){
            System.out.println("_________");
            for (Object cellValue : list) {
                System.out.println(cellValue);
            }
-        }
+        }*/
     }
 
 }

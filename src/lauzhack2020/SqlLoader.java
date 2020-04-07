@@ -1,197 +1,217 @@
 package lauzhack2020;
 
+import lauzhack2020.main.Enums.Canton;
+import org.jetbrains.annotations.NotNull;
+
 import java.sql.*;
 import java.util.ArrayList;
 
+import static java.lang.String.valueOf;
+
 public class SqlLoader {
 
-    public static void main(String[] args) {
-        SqlLoader loader = new SqlLoader();
-        try {
-            ArrayList<ArrayList<Object>> table1 = loader.getTblAsList("hospital");
+    private Connection conn;
+    private Statement statement;
+    private static final String JDBC_DRIVER_ = "com.mysql.jdbc.Driver";
+    private static final String DB_URL_CONNECTION = "jdbc:mysql://localhost:3306/lauzhack2020";
+    private static String USE_SSL = "?useSSL=false";
+    private static final String USER = "NoahMunz";
 
-        } catch (Exception e) {
-            System.out.println("\n" + e + "\n");
-            //e.printStackTrace();
+    public static void main(String[] args) throws NullPointerException, SQLException {
+
+        SqlLoader dB = null;
+
+        try {
+            dB = new SqlLoader();
+            ResultSet rs = dB.getRS("Patient");
+            rs.next();
+            ArrayList<String> fo = dB.convertToTblValue("CHUV", "Rue de Bugnon", "Vaud", "Lausanne", null);
+
+           /* String values =
+                    foo.get(0) + ", " + foo.get(1) + ", " + foo.get(2) + ", " + valueOf(1011) + ", " + "Vaud" + ", " + foo.get(3) + ", " +
+                    valueOf(1554) + ", " + valueOf(233);*/
+
+            ArrayList<String> foo = dB.convertToTblValue("hospital_id", "StName", "canton", "Town", null);
+            /*String values =
+                    foo.get(0) + ", " + foo.get(1) + ", " + foo.get(2) + ", " + valueOf(npa) + ", " + canton + ", " + foo.get(3) + ", " +
+                    valueOf(Capacity) + ", " + valueOf(FreeBeds);*/
+
+            //System.out.println(values);
+
+            dB.addToTblHospital("hospital_id", "StName", 2, "'vd", "Town", 2,
+                                2);
+
+        } catch (Exception se) {
+            //Handle errors for JDBC / connection, and SQL syntax
+            se.printStackTrace();
+            //Handle errors for Class.forName (registration JDBC)
+        } finally {
+            //finally dispose of the resources by closing connection directly before it's done automatically
+            try {
+                if (!dB.getStatement().isClosed() || dB.getStatement() != null) {
+                    dB.getConnection().close();
+                }
+            } catch (SQLException e) {}
+
+            try {
+                if (!dB.getConnection().isClosed() || dB.getConnection() != null) {
+                    dB.getConnection().close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } //end Finally Try
+            System.out.println("\nSuccessfully disconnected from database... ");
         }
+
     }
 
     /**
-     * Method to use to choose from which table in the DataBase you want to retrieve data from
+     * Constructor of SQLLoader, initialize/create a connection to the MySQL Server.
+     * <br> Always do before trying to retrieve data from the dataBase. <br/>
+     * Connection stored in field Connection conn on which must call "createStatement()" method to start executing statements
+     **/
+    SqlLoader() throws SQLException, ClassNotFoundException {
+        //STEP 1: Register JDBC driver
+        Class.forName(JDBC_DRIVER_);
+
+        //STEP 2: Open a connection
+        System.out.println("___________________________________\nConnecting to selected database...");
+        this.conn = DriverManager.getConnection(DB_URL_CONNECTION + USE_SSL, USER, "CL9Y8dPsedoPT");
+        assert conn != null;//Throws assertion exception if null ( better than NPE because more precise we know that it comes from here)
+        System.out.println("Connected database successfully !");
+
+        //STEP 3: Create Statement
+        this.statement = conn.createStatement();
+        System.out.println("Don't forget to rs.next()\n__________________________________\n");
+    }
+
+    /**
+     * Add the " <b>' '</b> " required to put a string in table cell for each string given in parameter, to an arrayList
+     * @return correctList
+     */
+    @NotNull
+    private ArrayList<String> convertToTblValue(String s1, String s2, String s3, String s4, String s5) {
+        ArrayList<String> list = new ArrayList<>();
+        ArrayList<String> list1 = new ArrayList<>();
+        list.add(s1);
+        list.add(s2);
+        list.add(s3);
+        list.add(s4);
+        list.add(s5);
+        String s = "'";
+
+        for (int i = 0 ; i < 5 ; i++) {
+            final String str = s + list.get(i) + s;
+            list1.add(i, str);
+        }
+        return list1;
+    }
+
+    /**
+     * Add a Hospital to the Hospital table (add a new row)
+     * @param hospital_id String
+     * @param StName String
+     * @param npa int
+     * @param canton Canton
+     * @param Town String
+     * @param Capacity int
+     * @param FreeBeds int
+     */
+    public void addToTblHospital(String hospital_id, String StName, int npa, String canton, String Town, int Capacity,
+                                 int FreeBeds) throws SQLException {
+        ArrayList<String> foo = convertToTblValue(hospital_id, StName, canton, Town, null);
+        String values =
+                foo.get(0) + ", " + foo.get(1) + ", " + foo.get(2) + ", " + valueOf(npa) + ", " + canton + ", " + foo.get(3) + ", " +
+                valueOf(Capacity) + ", " + valueOf(FreeBeds);
+        addInTable("hospital", values);
+    }
+
+    /**
+     * Execute an update statement like INSERT, UPDATE or DELETE or an sql stmt that returns nothing <br/><br/>
+     * (Here) Add a row in table
+     * @param tableName String
+     * @param values String (values for each Column)
+     * @throws SQLException
+     */
+    public void addInTable(String tableName, String values) throws SQLException {
+        String stmt = "INSERT INTO  " + tableName
+                      + " VALUES (" + values + ")";
+
+        statement.executeUpdate(stmt);
+    }
+
+    /**
+     * Get the result Set associated with the query (here always return a full table)
+     * Method to use to choose from which table in the DB you want to retrieve data from
      * @param tableName String : Name of the table to retrieve the data from (e.g. hospital, unit or patient)
      * @return resultSet -- ResultSet : data from Table asked (further action are required to print the values from this resultSet)
      */
-    public ResultSet getResultSet(String tableName) {
+    public ResultSet getRS(String tableName) {
         ResultSet rs = null;
         try {
-            Statement stmt = initConnection().createStatement();
-            rs = stmt.executeQuery("select * from " + tableName);
+            rs = statement.executeQuery("select * from " + tableName);
             return rs;
 
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
         return rs;
     }
+
+    //TODO: DOES NOT WORK THROWS NPE AND SQLEXCEPTION => PBLM SYNTAX (tested with print table)
 
     /**
      * Method to use to make personalized SQL Query other than just "select * from table"
      * @param query String SQL query to make
      * @return resultSet -- ResultSet the tbl associated to the query
      */
-    public ResultSet getQueryResultSet(String query) {
+    public ResultSet getQueryRS(String query) {
         ResultSet rs = null;
         try {
-            Statement stmt = initConnection().createStatement();
+            System.out.println(statement != null);
+            Statement stmt = conn.createStatement();
             rs = stmt.executeQuery(query);
             return rs;
 
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
         return rs;
     }
 
     /**
-     * Return the <b>value</b> of the <b>cell</b> from the <b>table</b> "tableName", <b>located</b> at <b>column</b>
-     * "columnName" and <b>row</b> "row" as a <b>String</b> or an <b>Integer</b> <br/>
-     * (e.g getValueFrom(Hospital, Capacity, 1) will return the capacity of the 1st hospital in the dataBase) <br/>
-     * (<b>Warning</b> : the returned object cannot be used neither
-     * with a method that is specific to String Type if the returned object is an Integer
-     * and vice versa, nor with a method that is specific to Object Type )
-     * @param columnName String
+     * Generalised version "getAnyValueType()" method, => search for any value no matter the row.
+     * (For all ResultSet)<br>
+     * <u>Warning</u>: does not reset the pointer on the Result Set (rs.next())
+     * @param column Object
      * @param row int
      * @param rs ResultSet
-     * @return value -- Integer or String
+     * @return CellValue
+     *
+     * @throws SQLException
      */
-    private Object getValueFrom(String columnName, int row, ResultSet rs) {
-        String str = null;
-        Integer nb = null;
-        boolean string = false;
-
-        try {
-            for (int i = 1 ; i <= row ; i++) {
-                rs.next();
-            }
-            str = rs.getString(columnName);
-
-            try {
-                nb = Integer.parseInt(str);
-                return nb;
-            } catch (NumberFormatException n) {
-                string = true;
-                return str;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+    private Object getCellValueFromRS(Object column, int row, ResultSet rs) throws SQLException {
+        for (int i = 1 ; i <= row ; i++) {
+            rs.next();
         }
-        return string ? (String) str : (Integer) nb;
+        return getAnyValueType(rs, column);
     }
 
     /**
-     * Return the <b>value</b> of the <b>cell</b> from the <b>table</b> "tableName", <b>located</b> at <b>column</b>
-     * "columnNb" and <b>row</b> "row" as a <b>String</b> or an <b>Integer</b> <br/>
-     * (e.g getValueFrom(Hospital, Capacity, 1) will return the capacity of the 1st hospital in the dataBase) <br/>
-     * (<b>Warning</b> : the returned object cannot be used neither
-     * with a method that is specific to String Type if the returned object is an Integer
-     * and vice versa, nor with a method that is specific to Object Type )
-     * @param columnNb int
-     * @param row int
-     * @param rs ResultSet
-     * @return value -- Integer or String
-     */
-    private Object getValueFrom(int columnNb, int row, ResultSet rs) {
-        String str = null;
-        Integer nb = null;
-        boolean string = false;
-
-        try {
-            for (int i = 1 ; i <= row ; i++) {
-                rs.next();
-            }
-            str = rs.getString(columnNb);
-
-            try {
-                nb = Integer.parseInt(str);
-                return nb;
-            } catch (NumberFormatException n) {
-                string = true;
-                return str;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return string ? (String) str : (Integer) nb;
-    }
-
-    /**
-     * Return the <b>value</b> of the <b>cell</b> from the <b>table</b> "tableName", <b>located</b> at <b>column</b>
-     * "columnName" and <b>row</b> "row" as a <b>String</b> or an <b>Integer</b> <br/>
-     * (e.g getValueFrom(Hospital, Capacity, 1) will return the capacity of the 1st hospital in the dataBase) <br/>
-     * (<b>Warning</b> : the returned object cannot be used neither
-     * with a method that is specific to String Type if the returned object is an Integer
-     * and vice versa, nor with a method that is specific to Object Type )
+     * Generalised version "getAnyValueType()" method, => Search for any value no matter the row.<br/><br/>
+     * Only for whole table (same as getCellValueFromRS() but with the resultSet equal to a whole table.)<br/>
+     * E.g. : getCellValue(Hospital, Capacity, 1) will return the capacity of the 1st hospital in the DB
      * @param tableName String
-     * @param columnName String
+     * @param column Object
      * @param row int
-     * @return value -- Integer or String
+     * @return value ((String Object) or ((Integer Object)
      */
-    public Object getValueFrom(String tableName, String columnName, int row) {
-        return getValueFrom(columnName, row, getResultSet(tableName));
+    public Object getCellValue(String tableName, Object column, int row) throws SQLException {
+        return getCellValueFromRS(column, row, getRS(tableName));
     }
 
     /**
-     * Return the <b>value</b> of the <b>cell</b> from the <b>table</b> "tableName", <b>located</b> at <b>column</b>
-     * "columnNb" and <b>row</b> "row" as a <b>String</b> or an <b>Integer</b> <br/>
-     * (e.g getValueFrom(Hospital, Capacity, 1) will return the capacity of the 1st hospital in the dataBase) <br/>
-     * (<b>Warning</b> : the returned object cannot be used neither
-     * with a method that is specific to String Type if the returned object is an Integer
-     * and vice versa, nor with a method that is specific to Object Type )
-     * @param tableName String
-     * @param columnNb String
-     * @param row int
-     * @return value -- Integer or String
-     */
-    public Object getValueFrom(String tableName, int columnNb, int row) {
-        return getValueFrom(columnNb, row, getResultSet(tableName));
-    }
-
-    /**
-     * Return the <b>value</b> of the <b>cell</b> from the <b>table</b> returned by the SQL query, <b>located</b> at <b>column</b>
-     * "columnName" and <b>row</b> "row" as a <b>String</b> or an <b>Integer</b> <br/>
-     * (e.g getValueFrom(Hospital, Capacity, 1) will return the capacity of the 1st hospital in the dataBase) <br/>
-     * (<b>Warning</b> : the returned object cannot be used neither
-     * with a method that is specific to String Type if the returned object is an Integer
-     * and vice versa, nor with a method that is specific to Object Type )
-     * @param columnName String
-     * @param row int
-     * @param query String
-     * @return value -- Integer or String
-     */
-    public Object getValueFrom(String columnName, int row, String query) {
-        return getValueFrom(columnName, row, getQueryResultSet(query));
-    }
-
-    /**
-     * Return the <b>value</b> of the <b>cell</b> from the <b>table</b> returned by the SQL query, <b>located</b> at <b>column</b>
-     * "columnNb" and <b>row</b> "row" as a <b>String</b> or an <b>Integer</b> <br/>
-     * (e.g getValueFrom(Hospital, Capacity, 1) will return the capacity of the 1st hospital in the dataBase) <br/>
-     * (<b>Warning</b> : the returned object cannot be used neither
-     * with a method that is specific to String Type if the returned object is an Integer
-     * and vice versa, nor with a method that is specific to Object Type )
-     * @param columnNb String
-     * @param row int
-     * @param query String
-     * @return value -- Integer or String
-     */
-    public Object getValueFrom(int columnNb, int row, String query) {
-        return getValueFrom(columnNb, row, getQueryResultSet(query));
-    }
-
-    /**
-     * Return the given Table as bi-dimensional ArrayList of Objects
+     * Return the given Table as bi-dimensional ArrayList of Objects for any RS
      * @param tableName String
      * @param rs ResultSet
      * @return table
@@ -214,31 +234,97 @@ public class SqlLoader {
     }
 
     /**
-     * Return the given Table as bi-dimensional ArrayList of Objects
+     * Return the given Table as bi-dimensional ArrayList of Objects, only for whole tables
      * @param tableName String
      * @return table
      */
     public ArrayList<ArrayList<Object>> getTblAsList(String tableName) {
-        return getTblAsList(tableName, getResultSet(tableName));
+        return getTblAsList(tableName, getRS(tableName));
     }
 
     /**
-     * Return the table returned by the SQL query as bi-dimensional ArrayList of Objects
-     * @param tableName String
-     * @param query String
-     * @return table
+     * <b>Used to get any value of a cell from 1st Row of any ResultSet</b> <br/>
+     * Use the right getString() method, depending on if the Object in paramater is indicating the column by it's name (String) or by its
+     * position (colNumber - int) <br><br>
+     * (NB: Intellij may say casting Integer or String on returned element is useless but it isn't at all. Still need to cast to assign the
+     * returned value to an Integer or String though)
+     * @param rs ResultSet
+     * @param column Object
+     * @return cell of resultSet (Object casted as String or Integer)
      */
-    public ArrayList<ArrayList<Object>> getTblAsList(String tableName, String query) {
-        return getTblAsList(tableName, getQueryResultSet(query));
+    private Object getAnyValueType(ResultSet rs, Object column) throws SQLException {
+        String cellValue;
+
+        assert (column instanceof String || column instanceof Integer);
+
+        if (column instanceof String) cellValue = rs.getString((String) column);
+        else cellValue = rs.getString((Integer) column);
+
+        try {
+            Integer intCellValue = Integer.parseInt(cellValue);
+            return intCellValue;
+
+        } catch (NumberFormatException nfe) {
+            return cellValue;
+        }
     }
+
+    /**
+     * @param tableName
+     * @return An arrayList of the rowNb-th row of a table
+     */
+    @NotNull
+    private ArrayList<Object> fillArray(String tableName, int rowNb) throws SQLException {
+        ArrayList<Object> list = new ArrayList<>();
+
+        for (int k = 1 ; k <= getColumnNb(tableName) ; k++) {
+            list.add(getCellValue(tableName, k, rowNb));
+        }
+
+        return list;
+    }
+
+    /**
+     * Count the number of column of table
+     * @param tableName String
+     * @return columnNb
+     */
+    public int getColumnNb(String tableName) {
+        int colNb = 0;
+        String str = "'" + tableName + "'";
+
+        try {
+            ResultSet rs = getQueryRS("select count(*) from information_schema.columns where table_name =" +
+                                      str);
+            rs.next();
+            colNb = rs.getInt(1);
+            return colNb;
+
+        } catch (Exception e) {
+            System.out.println();
+            e.printStackTrace();
+        }
+        return colNb;
+    }
+
+    public Connection getConnection() {
+        return conn;
+    }
+
+    public Statement getStatement() {
+        return statement;
+    }
+
+
+    /*************************************                 ********************************/
 
     /**
      * Used in other method to print the whole required table
      * tables available: (Unit, Patient, Hospital)
      * @param tableName String
-     * @param rs ResultSet
      */
-    private void printTbl(String tableName, ResultSet rs) {
+    private void printTbl(String tableName) {
+        ResultSet rs = getRS(tableName);
         try {
             int i;
             switch (tableName) {
@@ -301,132 +387,6 @@ public class SqlLoader {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Will print the whole required table
-     * tables available: (Unit, Patient, Hospital)
-     * @param tableName String
-     */
-    public void printTbl(String tableName) {
-        printTbl(tableName, getQueryResultSet(tableName));
-    }
-
-    /**
-     * Print the entire table returned by the SQL query
-     * @param tableName String
-     * @param query String
-     */
-    public void printTbl(String tableName, String query) {
-        printTbl(tableName, getQueryResultSet(query));
-    }
-
-    /**
-     * Count the number of column of table
-     * @param tableName String
-     * @return columnNb
-     */
-    public int getColumnNb(String tableName) {
-        int colNb = 0;
-        String str = "'" + tableName + "'";
-
-        try {
-            ResultSet rs = getQueryResultSet("select count(*) from information_schema.columns where table_name =" +
-                                             str);
-            rs.next();
-            colNb = rs.getInt(1);
-            return colNb;
-
-        } catch (Exception e) {
-            System.out.println();
-            e.printStackTrace();
-        }
-        return colNb;
-    }
-
-    /**
-     * @param tableName
-     * @return An arrayList of the rowNb-th row of a table
-     */
-    private ArrayList<Object> fillArray(String tableName, int rowNb) {
-        ArrayList<Object> list = new ArrayList<>();
-
-        for (int k = 1 ; k <= getColumnNb(tableName) ; k++ ) {
-            list.add(getValueFrom(tableName, k, rowNb));
-        }
-
-        return list;
-    }
-
-    /**
-     * Initialize the connection to the MySQL Server always before trying to retrieve data from the dataBase
-     * @return connection -- Connection (Object of type "Connection" on wich you must call the "createStatement()" method to enable the use
-     *         of query (e.g. : Statement stmt = initConnection().createStatement(); will allow you to use the method "executeQuery(query)")
-     *         to search for things "manually"
-     */
-    public Connection initConnection() {
-        Connection connection = null;
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/lauzhack2020?useSSL=false", "NoahMunz", "CL9Y8dPsedoPT");
-            // Statement stmt = connection.createStatement();
-            return connection;
-        } catch (Exception e) {
-            System.out.println("\n" + e + "\n");
-        }
-        return connection;
-    }
-
-
-    /****************************           ************************************/
-
-    /**
-     * Will return the data of an entire column/field for the specified table, as an ArrayList of Object
-     * (e.g. getColumnFrom("Unit", "capacity") will return an ArrayList of the capacity of all unit in the database)
-     * @param tableName String
-     * @param columnName String
-     * @param rs ResultSet
-     * @return list
-     */
-    private ArrayList<Object> getColumnFrom(String tableName, String columnName, ResultSet rs) {
-        ArrayList<Object> list = new ArrayList<>();
-
-        try {
-            int j = 1;
-            while (rs.next()) {
-                list.add(getValueFrom(tableName, columnName, j));
-                j++;
-            }
-            return list;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
-    /**
-     * Will return the data of an entire column/field for the specified table, as an ArrayList of Object
-     * (e.g. getColumnFrom("Unit", "capacity") will return an ArrayList of the capacity of all unit in the database)
-     * @param tableName String
-     * @param columnName String
-     * @return list
-     */
-    public ArrayList<Object> getColumnFrom(String tableName, String columnName) {
-        return getColumnFrom(tableName, columnName, getResultSet(tableName));
-    }
-
-    /**
-     * Will return the data of an entire column/field for the specified query, as an ArrayList of Object
-     * (e.g. getColumnFrom("Unit", "capacity") will return an ArrayList of the capacity of all unit in the database)
-     * @param tableName String
-     * @param columnName String
-     * @param query String
-     * @return list
-     */
-    public ArrayList<Object> getColumnFrom(String tableName, String columnName, String query) {
-        return getColumnFrom(tableName, columnName, getQueryResultSet(query));
     }
 
 }
