@@ -1,6 +1,5 @@
 package main;
 
-import SqlLoader;
 import healthCare.Hospital;
 
 import java.sql.SQLException;
@@ -12,13 +11,9 @@ public class Main {
         ArrayList<Hospital> hospitals = new ArrayList<>();
         SqlLoader loader = new SqlLoader();
 
+
       ArrayList<ArrayList<Object>> tableHospital = loader.getTblAsList("hospital");
-        for (ArrayList<Object> list : tableHospital){
-           System.out.println("_________");
-           for (Object cellValue : list) {
-               System.out.println(cellValue);
-           }
-        }
+
     }
 
 }
