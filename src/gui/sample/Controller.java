@@ -5,10 +5,9 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import lauzhack2020.healthCare.Hospital;
-import lauzhack2020.healthCare.Patient;
-import lauzhack2020.healthCare.administration.HospitalURL;
-import lauzhack2020.healthCare.administration.UnitType;
+import healthCare.Patient;
+import healthCare.administration.HospitalURL;
+import healthCare.administration.UnitType;
 
 import java.net.URL;
 import java.util.ResourceBundle;

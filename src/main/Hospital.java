@@ -1,4 +1,4 @@
-package lauzhack2020.main;
+package main;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package lauzhack2020.healthCare.administration;
+package healthCare.administration;
 
 public enum UnitType {
 

@@ -1,6 +1,6 @@
-package lauzhack2020.healthCare;
+package healthCare;
 
-import lauzhack2020.healthCare.administration.UnitType;
+import healthCare.administration.UnitType;
 
 public final class Patient {
 

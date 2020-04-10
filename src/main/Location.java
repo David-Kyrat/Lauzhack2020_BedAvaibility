@@ -1,6 +1,6 @@
-package lauzhack2020.main;
+package main;
 
-import lauzhack2020.main.Enums.Canton;
+import main.Enums.Canton;
 
 public class Location {
 

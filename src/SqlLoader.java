@@ -1,6 +1,3 @@
-package lauzhack2020;
-
-import lauzhack2020.main.Enums.Canton;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
@@ -26,20 +23,9 @@ public class SqlLoader {
             ResultSet rs = dB.getRS("Patient");
             rs.next();
             ArrayList<String> fo = dB.convertToTblValue("CHUV", "Rue de Bugnon", "Vaud", "Lausanne", null);
-
-           /* String values =
-                    foo.get(0) + ", " + foo.get(1) + ", " + foo.get(2) + ", " + valueOf(1011) + ", " + "Vaud" + ", " + foo.get(3) + ", " +
-                    valueOf(1554) + ", " + valueOf(233);*/
-
             ArrayList<String> foo = dB.convertToTblValue("hospital_id", "StName", "canton", "Town", null);
-            /*String values =
-                    foo.get(0) + ", " + foo.get(1) + ", " + foo.get(2) + ", " + valueOf(npa) + ", " + canton + ", " + foo.get(3) + ", " +
-                    valueOf(Capacity) + ", " + valueOf(FreeBeds);*/
 
-            //System.out.println(values);
-
-            dB.addToTblHospital("hospital_id", "StName", 2, "'vd", "Town", 2,
-                                2);
+            //dB.addToTblHospital("hospital_id", "StName", 2, "'vd", "Town", 2, 2);
 
         } catch (Exception se) {
             //Handle errors for JDBC / connection, and SQL syntax
@@ -70,7 +56,7 @@ public class SqlLoader {
      * <br> Always do before trying to retrieve data from the dataBase. <br/>
      * Connection stored in field Connection conn on which must call "createStatement()" method to start executing statements
      **/
-    SqlLoader() throws SQLException, ClassNotFoundException {
+    public SqlLoader() throws SQLException, ClassNotFoundException {
         //STEP 1: Register JDBC driver
         Class.forName(JDBC_DRIVER_);
 

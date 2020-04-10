@@ -1,6 +1,6 @@
-package lauzhack2020.main;
+package main;
 
-import lauzhack2020.main.Enums.UnitType;
+import main.Enums.UnitType;
 
 public class Unit {
 //Different Areas/Unit like intensive care unit, normal care unit etc...

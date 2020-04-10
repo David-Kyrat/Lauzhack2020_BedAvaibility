@@ -1,4 +1,4 @@
-package lauzhack2020.main.Enums;
+package main.Enums;
 
 public enum UnitType {
 

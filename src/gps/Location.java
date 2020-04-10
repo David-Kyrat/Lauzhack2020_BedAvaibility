@@ -1,6 +1,6 @@
-package lauzhack2020.gps;
+package gps;
 
-import lauzhack2020.healthCare.administration.Canton;
+import healthCare.administration.Canton;
 
 public final class Location {
 

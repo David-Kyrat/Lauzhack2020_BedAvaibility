@@ -1,6 +1,6 @@
-package lauzhack2020.healthCare;
+package healthCare;
 
-import lauzhack2020.gps.Location;
+import gps.Location;
 
 import java.util.ArrayList;
 
